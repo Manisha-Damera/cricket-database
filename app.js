@@ -4,15 +4,6 @@ app.use(express.json());
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 
-const convertDbObjectToResponseObject = (dbObject) => {
-  return {
-    playerId: dbObject.player_id,
-    playerName: dbObject.player_name,
-    jerseyNumber: dbObject.jersey_number,
-    role: dbObject.role,
-  };
-};
-
 const path = require("path");
 const dbPath = path.join(__dirname, "cricketTeam.db");
 
@@ -30,10 +21,20 @@ const initializeDBAndServer = async () => {
     });
   } catch (e) {
     console.log(`DB Error ${e.message}`);
+    process.exit(1);
   }
 };
 
 initializeDBAndServer();
+
+const convertDbObjectToResponseObject = (dbObject) => {
+  return {
+    playerId: dbObject.player_id,
+    playerName: dbObject.player_name,
+    jerseyNumber: dbObject.jersey_number,
+    role: dbObject.role,
+  };
+};
 
 app.get("/players/", async (request, response) => {
   const getPlayerQuery = `
@@ -48,16 +49,18 @@ app.get("/players/", async (request, response) => {
 });
 
 //app add players
-app.post("/players/:playerId/", async (request, response) => {
+app.post("/players/", async (request, response) => {
   const { playerName, jerseyNumber, role } = request.body;
-  //const { playerId } = request.params;
+
   const postPlayerQuery = `
     INSERT INTO
-    cricket_team(player_name,jersey_number,role);
-    VALUES
-    ("${playerName}",${jerseyNumber},"${role}");`;
+    cricket_team(player_name,jersey_number, role)
+    VALUES(
+    '${playerName}',
+    ${jerseyNumber},
+   '${role}');`;
   const addPlayerData = await db.run(postPlayerQuery);
-  const playerId = addPlayerData.lastID;
+
   response.send("Player Added to Team");
 });
 
